@@ -1,3 +1,6 @@
+#ifndef CHARACTER_H
+#define CHARACTER_H
+
 #include "raylib.h"
 #include "BaseCharacter.h"
 
@@ -10,8 +13,11 @@ public:
     );
     
     virtual void tick(float deltaTime) override;
+    Vector2 getScreenPos() { return screenPos; }
     
 
 private:
     
 };
+
+#endif
