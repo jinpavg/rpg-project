@@ -3,10 +3,9 @@
 #include "Character.h"
 #include "Prop.h"
 #include "Enemy.h"
+#include <string>
 
-#include "stdio.h"
-
-//using namespace std;
+// using namespace std;
 
 int main()
 {
@@ -28,13 +27,24 @@ int main()
         Prop{Vector2{400.f, 500.f}, LoadTexture("nature_tileset/Log.png")},
     };
 
-    Enemy goblin {
-        Vector2{}, 
-        LoadTexture("characters/goblin_idle_spritesheet.png"), 
-        LoadTexture("characters/goblin_run_spritesheet.png") 
-    };
+    Enemy goblin{
+        Vector2{},
+        LoadTexture("characters/goblin_idle_spritesheet.png"),
+        LoadTexture("characters/goblin_run_spritesheet.png")};
 
-    goblin.setTarget(&knight);
+    Enemy slime{
+        Vector2{static_cast<float>(map.width), static_cast<float>(map.height)},
+        LoadTexture("characters/slime_idle_spritesheet.png"),
+        LoadTexture("characters/slime_run_spritesheet.png")};
+
+    Enemy *enemies[]{
+        &goblin,
+        &slime};
+
+    for (auto enemy : enemies)
+    {
+        enemy->setTarget(&knight);
+    }
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
@@ -50,15 +60,27 @@ int main()
             prop.Render(knight.getWorldPos());
         }
 
+        if (!knight.getAlive()) // night is unalive
+        {
+            DrawText("Game Over!", 55.f, 45.f, 40, RED);
+            EndDrawing();
+            continue;
+        }
+        else // knight is alive
+        {
+            std::string knightsHealth{"Health: "};
+            knightsHealth.append(std::to_string(knight.getHealth()), 0, 5);
+            DrawText(knightsHealth.c_str(), 55.f, 45.f, 40, RED);
+        }
+
         knight.tick(GetFrameTime());
         // check map bounds
         if (knight.getWorldPos().x < 0.f ||
             knight.getWorldPos().y < 0.f ||
             knight.getWorldPos().x + windowDimensions[0] > (map.width * mapScale) ||
-            knight.getWorldPos().y + windowDimensions[1] > (map.height * mapScale)
-        )
+            knight.getWorldPos().y + windowDimensions[1] > (map.height * mapScale))
         {
-            //printf();
+            // printf();
             knight.undoMovement();
         }
 
@@ -72,7 +94,21 @@ int main()
         }
 
         // draw Enemy
-        goblin.tick(GetFrameTime());
+        for (auto enemy : enemies)
+        {
+            enemy->tick(GetFrameTime());
+        }
+
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        {
+            for (auto enemy : enemies)
+            {
+                if (CheckCollisionRecs(enemy->getCollisionRec(), knight.getCollisionRec()))
+                {
+                    enemy->setAlive(false);
+                }
+            }
+        }
 
         EndDrawing();
     }

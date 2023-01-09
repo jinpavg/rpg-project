@@ -16,17 +16,21 @@ void Enemy::setTarget(Character* hero) { target = hero; }
 
 void Enemy::tick(float deltaTime)
 {
-    // get toTarget
-    Vector2 toTarget = Vector2Subtract(target->getScreenPos(), screenPos);
-    // normalize toTarget
-    toTarget = Vector2Normalize(toTarget);
-    // multiply toTarget * speed
-    toTarget = Vector2Scale(toTarget, speed);
-    // set worldPos, move Enemy
-    worldPos = Vector2Add(worldPos, toTarget);
+    if (!getAlive()) return;
 
-    screenPos = Vector2Subtract(worldPos, target->getWorldPos());
+    velocity = Vector2Subtract(target->getScreenPos(), getScreenPos());
+    if (Vector2Length(velocity) < radius) velocity = {};
     BaseCharacter::tick(deltaTime);
 
+    if (CheckCollisionRecs(target->getCollisionRec(), getCollisionRec()))
+    {
+        target->takeDamage(damagePerSec * deltaTime);
+    }
+
+}
+
+Vector2 Enemy::getScreenPos()
+{
+    return Vector2Subtract(worldPos, target->getWorldPos());
 }
 
